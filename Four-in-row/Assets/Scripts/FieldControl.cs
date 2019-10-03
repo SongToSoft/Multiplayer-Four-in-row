@@ -68,171 +68,166 @@ public class FieldControl : MonoBehaviour
     {
         if (state != EState.CHOSE_MODE)
         {
-            if (mode == EMode.HOT_SEAT || customNetworkManager.IsServer())
+            if (state == EState.WAIT_PLAYERS)
             {
-                if (state == EState.WAIT_PLAYERS)
+                if (customNetworkManager.IsServer() && customNetworkManager.players.Count == 2)
                 {
-                    if (customNetworkManager.players.Count == 2)
+                    state = EState.PLAYER_STEP;
+                    customNetworkManager.InstantiateCSC();
+                    ClientServerConnector.Instanse.clientRequest = -1;
+                    ClientServerConnector.Instanse.hostRequest = -1;
+                    return;
+                }
+                if (!customNetworkManager.IsServer())
+                {
+                    players = Object.FindObjectsOfType<Player>();
+                    if (players.Length == 2)
                     {
                         state = EState.PLAYER_STEP;
-                        customNetworkManager.InstantiateCSC();
                         ClientServerConnector.Instanse.clientRequest = -1;
-                        ClientServerConnector.Instanse.isEnd = false;
-                        ClientServerConnector.Instanse.winRed = false;
+                        ClientServerConnector.Instanse.hostRequest = -1;
                     }
-                    return;
-                }
-                if (state == EState.PLAYER_STEP)
-                {
-                    if (((mode == EMode.ONLINE) && (customNetworkManager.GetLocalPlayer().GetActive())) ||
-                         (mode == EMode.HOT_SEAT))
-                    {
-                        if (Input.GetMouseButtonDown(0))
-                        {
-                            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                            RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction);
-                            if (hit.collider != null)
-                            {
-                                Column column = hit.transform.GetComponent<Column>();
-                                if (AddChip(column.GetId()))
-                                {
-                                    if (mode == EMode.ONLINE)
-                                    {
-                                        customNetworkManager.GetLocalPlayer().SetActive(!customNetworkManager.GetLocalPlayer().GetActive());
-                                        customNetworkManager.GetDistancePlayer().SetActive(!customNetworkManager.GetDistancePlayer().GetActive());
-                                    }
-                                    state = EState.MOVE_CHIP;
-                                }
-                            }
-                        }
-                        return;
-                    }
-                    else
-                    {
-                        if (ClientServerConnector.Instanse.clientRequest != (-1))
-                        {
-                            if (AddChip(ClientServerConnector.Instanse.clientRequest))
-                            {
-                                customNetworkManager.GetLocalPlayer().SetActive(!customNetworkManager.GetLocalPlayer().GetActive());
-                                customNetworkManager.GetDistancePlayer().SetActive(!customNetworkManager.GetDistancePlayer().GetActive());
-                                ClientServerConnector.Instanse.clientRequest = -1;
-                                state = EState.MOVE_CHIP;
-                            }
-                        }
-                    }
-                }
-                if (state == EState.MOVE_CHIP)
-                {
-                    if (chips[lastChipIdI, lastChipIdJ].IsMove())
-                    {
-                        chips[lastChipIdI, lastChipIdJ].MoveToNewPosition();
-                    }
-                    else
-                    {
-                        state = EState.CHECK_WINNER;
-                    }
-                    return;
-                }
-                if (state == EState.CHECK_WINNER)
-                {
-                    for (int i = 0; i < 6; ++i)
-                    {
-                        for (int j = 0; j < 7; ++j)
-                        {
-                            if (chips[i, j] != null)
-                            {
-                                EChipColor currentColor = chips[i, j].GetColor();
-                                if (CheckHorizontal(currentColor, i, j) ||
-                                    CheckVertical(currentColor, i, j) ||
-                                    CheckRightDiagonal(currentColor, i, j) ||
-                                    CheckLeftDiagonal(currentColor, i, j))
-                                {
-                                    state = EState.PLAYER_WIN;
-                                    return;
-                                }
-                                if (CheckFoolChips())
-                                {
-                                    state = EState.DRAW;
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                    state = EState.PLAYER_STEP;
-                    ChangeCurrentColor();
-                    return;
-                }
-                if (state == EState.PLAYER_WIN)
-                {
-                    if (currentColorStep == EChipColor.RED)
-                    {
-                        ++redScoreValue;
-                        if (mode == EMode.ONLINE)
-                        {
-                            customNetworkManager.GetLocalPlayer().IncreaseScore();
-                        }
-                        ClientServerConnector.Instanse.winRed = true;
-                        redWin.text = "Winner";
-                        blueWin.text = "Loser";
-                    }
-                    else
-                    {
-                        ++blueScoreValue;
-                        if (mode == EMode.ONLINE)
-                        {
-                            customNetworkManager.GetDistancePlayer().IncreaseScore();
-                        }
-                        ClientServerConnector.Instanse.winRed = false;
-                        redWin.text = "Loser";
-                        blueWin.text = "Winner";
-                    }
-                    newGamePanel.SetActive(true);
-                    state = EState.WAIT_CHOSE;
-                    ClientServerConnector.Instanse.isEnd = false;
-                    ClientServerConnector.Instanse.isEnd = true;
-                    return;
-                }
-                if (state == EState.DRAW)
-                {
-                    redWin.text = "Draw";
-                    blueWin.text = "Draw";
-                    newGamePanel.SetActive(true);
-                    state = EState.WAIT_CHOSE;
                     return;
                 }
             }
-            else
+            if (state == EState.PLAYER_STEP)
             {
-                if (players.Length < 2)
+                if (mode == EMode.HOT_SEAT)
                 {
-                    players = Object.FindObjectsOfType<Player>();
+                    MouseControl();
                 }
                 else
                 {
-                    if (ClientServerConnector.Instanse.isEnd)
+                    if (customNetworkManager.IsServer())
                     {
-                        NewGame();
+                        if (ClientServerConnector.Instanse.clientRequest != (-1))
+                        {
+                            Debug.Log("Server: Client Requst is: " + ClientServerConnector.Instanse.clientRequest);
+                            AddChip(ClientServerConnector.Instanse.clientRequest);
+                            ClientServerConnector.Instanse.clientRequest = -1;
+                            customNetworkManager.GetLocalPlayer().SetActive(true);
+                            customNetworkManager.GetDistancePlayer().SetActive(false);
+                            state = EState.MOVE_CHIP;
+                        }
+                        else
+                        {
+                            if (customNetworkManager.GetLocalPlayer().GetActive())
+                            {
+                                MouseControl();
+                            }
+                        }
                     }
                     else
                     {
-                        redWin.text = "";
-                        blueWin.text = "";
-                        if (GetLocalPlayer().GetActive())
+                        if (ClientServerConnector.Instanse.hostRequest != (-1))
                         {
-                            if (Input.GetMouseButtonDown(0))
+                            Debug.Log("Client: Host Requst is: " + ClientServerConnector.Instanse.hostRequest);
+                            AddChip(ClientServerConnector.Instanse.hostRequest);
+                            GetLocalPlayer().CmdChangeHostRequest(-1);
+                            GetLocalPlayer().SetActive(true);
+                            GetDistancePlayer().SetActive(false);
+                            state = EState.MOVE_CHIP;
+                            //customNetworkManager.GetLocalPlayer().SetActive(!customNetworkManager.GetLocalPlayer().GetActive());
+                            //customNetworkManager.GetDistancePlayer().SetActive(!customNetworkManager.GetDistancePlayer().GetActive());
+                        }
+                        else
+                        {
+                            if (GetLocalPlayer().GetActive())
                             {
-                                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                                RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction);
-                                if (hit.collider != null)
-                                {
-                                    Column column = hit.transform.GetComponent<Column>();
-                                    GetLocalPlayer().CmdChangeClientRequest(column.GetId());
-                                    GetDistancePlayer().CmdChangeClientRequest(column.GetId());
-                                }
+                                MouseControl();
                             }
                         }
                     }
                 }
+            }
+            if (state == EState.MOVE_CHIP)
+            {
+                if (chips[lastChipIdI, lastChipIdJ].IsMove())
+                {
+                    chips[lastChipIdI, lastChipIdJ].MoveToNewPosition();
+                }
+                else
+                {
+                    state = EState.CHECK_WINNER;
+                }
+                return;
+            }
+            if (state == EState.CHECK_WINNER)
+            {
+                for (int i = 0; i < 6; ++i)
+                {
+                    for (int j = 0; j < 7; ++j)
+                    {
+                        if (chips[i, j] != null)
+                        {
+                            EChipColor currentColor = chips[i, j].GetColor();
+                            if (CheckHorizontal(currentColor, i, j) ||
+                                CheckVertical(currentColor, i, j) ||
+                                CheckRightDiagonal(currentColor, i, j) ||
+                                CheckLeftDiagonal(currentColor, i, j))
+                            {
+                                state = EState.PLAYER_WIN;
+                                return;
+                            }
+                            if (CheckFoolChips())
+                            {
+                                state = EState.DRAW;
+                                return;
+                            }
+                        }
+                    }
+                }
+                state = EState.PLAYER_STEP;
+                ChangeCurrentColor();
+                return;
+            }
+            if (state == EState.PLAYER_WIN)
+            {
+                if (currentColorStep == EChipColor.RED)
+                {
+                    ++redScoreValue;
+                    if (mode == EMode.ONLINE)
+                    {
+                        if (customNetworkManager.IsServer())
+                        {
+                            customNetworkManager.GetLocalPlayer().IncreaseScore();
+                        }
+                        else
+                        {
+                            GetDistancePlayer().IncreaseScore();
+                        }
+                    }
+                    redWin.text = "Winner";
+                    blueWin.text = "Loser";
+                }
+                else
+                {
+                    ++blueScoreValue;
+                    if (mode == EMode.ONLINE)
+                    {
+                        if (customNetworkManager.IsServer())
+                        {
+                            customNetworkManager.GetDistancePlayer().IncreaseScore();
+                        }
+                        else
+                        {
+                            GetLocalPlayer().IncreaseScore();
+                        }
+                    }
+                    redWin.text = "Loser";
+                    blueWin.text = "Winner";
+                }
+                newGamePanel.SetActive(true);
+                state = EState.WAIT_CHOSE;
+                return;
+            }
+            if (state == EState.DRAW)
+            {
+                redWin.text = "Draw";
+                blueWin.text = "Draw";
+                newGamePanel.SetActive(true);
+                state = EState.WAIT_CHOSE;
+                return;
             }
         }
     }
@@ -413,17 +408,7 @@ public class FieldControl : MonoBehaviour
         {
             return false;
         }
-        if (mode == EMode.HOT_SEAT)
-        {
-            chips[count, id] = Instantiate(GetCurrentChip(), columns[id].GetTopPosition(), GetCurrentChip().transform.rotation);
-        }        
-        else
-        {
-            if (customNetworkManager.GetLocalPlayer().isServer)
-            {
-                chips[count, id] = customNetworkManager.InstantiateChip(GetCurrentChip(), columns[id].GetTopPosition());
-            }
-        }
+        chips[count, id] = Instantiate(GetCurrentChip(), columns[id].GetTopPosition(), GetCurrentChip().transform.rotation);
         for (int i = 0; i <= count; ++i)
         {
             chips[count, id].MoveDown();
@@ -456,13 +441,15 @@ public class FieldControl : MonoBehaviour
         }
         else
         {
+            newGamePanel.SetActive(false);
+            currentColorStep = startColorStep;
+            ChangeStartColor();
             if (customNetworkManager.IsServer())
             {
-                newGamePanel.SetActive(false);
                 redScore.text = customNetworkManager.players[0].GetScore().ToString();
                 blueScore.text = customNetworkManager.players[1].GetScore().ToString();
-                currentColorStep = startColorStep;
-                ChangeStartColor();
+                customNetworkManager.GetLocalPlayer().CmdChangeClientRequest(-1);
+                customNetworkManager.GetLocalPlayer().CmdChangeHostRequest(-1);
                 if (currentColorStep == EChipColor.RED)
                 {
                     customNetworkManager.GetLocalPlayer().SetActive(true);
@@ -473,29 +460,28 @@ public class FieldControl : MonoBehaviour
                     customNetworkManager.GetLocalPlayer().SetActive(false);
                     customNetworkManager.GetDistancePlayer().SetActive(true);
                 }
-                ClientServerConnector.Instanse.clientRequest = -1;
-                ClientServerConnector.Instanse.isEnd = false;
-                redWin.text = "";
-                blueWin.text = "";
-                DelChips();
-                state = EState.PLAYER_STEP;
             }
             else
             {
-                redScore.text = players[1].GetScore().ToString();
-                blueScore.text = players[0].GetScore().ToString();
-                ClientServerConnector.Instanse.clientRequest = -1;
-                if (ClientServerConnector.Instanse.winRed)
+                redScore.text = players[0].GetScore().ToString();
+                blueScore.text = players[1].GetScore().ToString();
+                GetLocalPlayer().CmdChangeClientRequest(-1);
+                GetLocalPlayer().CmdChangeHostRequest(-1);
+                if (currentColorStep == EChipColor.RED)
                 {
-                    redWin.text = "Winner";
-                    blueWin.text = "Loser";
+                    GetDistancePlayer().SetActive(true);
+                    GetLocalPlayer().SetActive(false);
                 }
                 else
                 {
-                    redWin.text = "Loser";
-                    blueWin.text = "Winner";
+                    GetDistancePlayer().SetActive(false);
+                    GetLocalPlayer().SetActive(true);
                 }
             }
+            redWin.text = "";
+            blueWin.text = "";
+            DelChips();
+            state = EState.PLAYER_STEP;
         }
     }
 
@@ -558,5 +544,38 @@ public class FieldControl : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void MouseControl()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction);
+            if (hit.collider != null)
+            {
+                Column column = hit.transform.GetComponent<Column>();
+                if (AddChip(column.GetId()))
+                {
+                    if (mode == EMode.ONLINE)
+                    {
+                        if (customNetworkManager.IsServer())
+                        {
+                            customNetworkManager.GetLocalPlayer().CmdChangeHostRequest(column.GetId());
+                            customNetworkManager.GetLocalPlayer().SetActive(false);
+                            customNetworkManager.GetDistancePlayer().SetActive(true);
+                        }
+                        else
+                        {
+                            GetLocalPlayer().CmdChangeClientRequest(column.GetId());
+                            GetLocalPlayer().SetActive(false);
+                            GetDistancePlayer().SetActive(true);
+                        }
+                    }                   
+                    state = EState.MOVE_CHIP;
+                }
+            }
+        }
+        return;
     }
 }

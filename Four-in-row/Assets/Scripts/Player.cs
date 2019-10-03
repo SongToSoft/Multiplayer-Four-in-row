@@ -1,9 +1,12 @@
-﻿using UnityEngine.Networking;
+﻿using UnityEngine;
+using UnityEngine.Networking;
 
 public class Player : NetworkBehaviour
 {
     [SyncVar]
+    [SerializeField]
     private bool active;
+
     [SyncVar]
     private int score;
 
@@ -36,5 +39,25 @@ public class Player : NetworkBehaviour
     public void CmdChangeClientRequest(int value)
     {
         ClientServerConnector.Instanse.clientRequest = value;
+        RpcChangeClientRequest(value);
+    }
+
+    [ClientRpc]
+    public void RpcChangeClientRequest(int value)
+    {
+        ClientServerConnector.Instanse.clientRequest = value;
+    }
+
+    [Command]
+    public void CmdChangeHostRequest(int value)
+    {
+        ClientServerConnector.Instanse.hostRequest = value;
+        RpcChangeHostRequest(value);
+    }
+
+    [ClientRpc]
+    public void RpcChangeHostRequest(int value)
+    {
+        ClientServerConnector.Instanse.hostRequest = value;
     }
 }

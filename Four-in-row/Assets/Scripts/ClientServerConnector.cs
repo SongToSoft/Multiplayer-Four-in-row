@@ -13,10 +13,7 @@ public class ClientServerConnector : NetworkBehaviour
 
     [SyncVar]
     [SerializeField]
-    public bool isEnd;
-
-    [SyncVar]
-    public bool winRed = false;
+    public int hostRequest;
 
     private void Awake()
     {
