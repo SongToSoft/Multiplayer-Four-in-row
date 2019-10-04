@@ -25,7 +25,6 @@ ScriptsOnlyBuild:
     - UnityEngine.UI.Image
     - UnityEngine.UI.Text
     com.unity.multiplayer-hlapi.Runtime.dll:
-    - UnityEngine.Networking.NetworkCallbacks
     - UnityEngine.Networking.NetworkDiscovery
     - UnityEngine.Networking.NetworkIdentity
     - UnityEngine.Networking.NetworkManagerHUD
@@ -637,7 +636,7 @@ ScriptsOnlyBuild:
     className: PlayableTrack
   - hash:
       serializedVersion: 2
-      Hash: 6d08af92c28d67cf49940a0c84c43208
+      Hash: 853b5a8a9309e6c6da2c65b1389382d6
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: FieldControl

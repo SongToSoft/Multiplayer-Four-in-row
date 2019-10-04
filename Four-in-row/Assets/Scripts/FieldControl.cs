@@ -27,7 +27,7 @@ public enum EMode
 public class FieldControl : MonoBehaviour
 {
     [SerializeField]
-    private GameObject choseModePanel,  newGamePanel;
+    private GameObject choseModePanel,  newGamePanel, waitingPanel;
     [SerializeField]
     private Text redScore, blueScore, redWin, blueWin;
     public static EChipColor startColorStep = EChipColor.RED;
@@ -76,6 +76,7 @@ public class FieldControl : MonoBehaviour
                     customNetworkManager.InstantiateCSC();
                     ClientServerConnector.Instanse.clientRequest = -1;
                     ClientServerConnector.Instanse.hostRequest = -1;
+                    waitingPanel.SetActive(false);
                     return;
                 }
                 if (!customNetworkManager.IsServer())
@@ -86,6 +87,7 @@ public class FieldControl : MonoBehaviour
                         state = EState.PLAYER_STEP;
                         ClientServerConnector.Instanse.clientRequest = -1;
                         ClientServerConnector.Instanse.hostRequest = -1;
+                        waitingPanel.SetActive(false);
                     }
                     return;
                 }
@@ -430,6 +432,7 @@ public class FieldControl : MonoBehaviour
         state = EState.WAIT_PLAYERS;
         mode = EMode.ONLINE;
         choseModePanel.SetActive(false);
+        waitingPanel.SetActive(true);
         customNetworkManager.gameObject.SetActive(true);
     }
 
@@ -463,8 +466,8 @@ public class FieldControl : MonoBehaviour
             }
             else
             {
-                redScore.text = players[0].GetScore().ToString();
-                blueScore.text = players[1].GetScore().ToString();
+                redScore.text = players[1].GetScore().ToString();
+                blueScore.text = players[0].GetScore().ToString();
                 GetLocalPlayer().CmdChangeClientRequest(-1);
                 GetLocalPlayer().CmdChangeHostRequest(-1);
                 if (currentColorStep == EChipColor.RED)
