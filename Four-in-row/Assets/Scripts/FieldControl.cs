@@ -274,11 +274,11 @@ public class FieldControl : MonoBehaviour
         {
             for (int k = j; k < j + count; ++k)
             {
-                chips[i, k].SetPointActive();
+                chips[i, k].SetColorActive();
                 if (mode == EMode.ONLINE)
                 {
                     Debug.Log("RpcSetPointActive");
-                    chips[i, k].RpcSetPointActive();
+                    chips[i, k].RpcSetColorActive();
                 }
             }
             return true;
@@ -311,7 +311,7 @@ public class FieldControl : MonoBehaviour
         {
             for (int k = i; k < i + count; ++k)
             {
-                chips[k, j].SetPointActive();
+                chips[k, j].SetColorActive();
             }
             return true;
         }
@@ -346,7 +346,7 @@ public class FieldControl : MonoBehaviour
         {
             for (int k = 0; k < count; ++k)
             {
-                chips[i + k, j + k].SetPointActive();
+                chips[i + k, j + k].SetColorActive();
             }
             return true;
         }
@@ -380,7 +380,7 @@ public class FieldControl : MonoBehaviour
             // Debug.Log(i + "--" + j);
             for (int k = 0; k < count; ++k)
             {
-                chips[i + k, j - k].SetPointActive();
+                chips[i + k, j - k].SetColorActive();
             }
             return true;
         }

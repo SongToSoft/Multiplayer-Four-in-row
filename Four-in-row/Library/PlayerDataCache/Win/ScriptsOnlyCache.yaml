@@ -25,6 +25,7 @@ ScriptsOnlyBuild:
     - UnityEngine.UI.Image
     - UnityEngine.UI.Text
     com.unity.multiplayer-hlapi.Runtime.dll:
+    - UnityEngine.Networking.NetworkCallbacks
     - UnityEngine.Networking.NetworkDiscovery
     - UnityEngine.Networking.NetworkIdentity
     - UnityEngine.Networking.NetworkManagerHUD
@@ -390,7 +391,7 @@ ScriptsOnlyBuild:
     className: RawImage
   - hash:
       serializedVersion: 2
-      Hash: cd42234bfef35171dd469810464474cc
+      Hash: 33a70b581e35d3d3ef585376762427e6
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: Chip

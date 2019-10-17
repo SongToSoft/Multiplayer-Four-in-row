@@ -9,23 +9,22 @@ public enum EChipColor
 
 public class Chip : NetworkBehaviour
 {
-    [SyncVar]
-    [SerializeField]
-    private GameObject point;
     [SerializeField]
     private EChipColor color;
     private Transform chipTransform;
     private Vector3 newPosition;
+    private SpriteRenderer spriteRenderer;
+
+    protected void Awake()
+    {
+        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        chipTransform = GetComponent<Transform>();
+        newPosition = chipTransform.position;
+    }
 
     public EChipColor GetColor()
     {
         return color;
-    }
-
-    protected void Awake()
-    {
-        chipTransform = GetComponent<Transform>();
-        newPosition = chipTransform.position;
     }
 
     public void MoveDown()
@@ -46,14 +45,14 @@ public class Chip : NetworkBehaviour
         return (chipTransform.position != newPosition);
     }
 
-    public void SetPointActive()
+    public void SetColorActive()
     {
-        point.SetActive(true);
+        spriteRenderer.color = new Color(255, 255, 0);
     }
 
     [ClientRpc]
-    public void RpcSetPointActive()
+    public void RpcSetColorActive()
     {
-        point.SetActive(true);
+        spriteRenderer.color = new Color(255, 255, 0);
     }
 }
